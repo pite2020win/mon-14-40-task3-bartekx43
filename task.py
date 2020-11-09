@@ -13,18 +13,74 @@
 # If you have enough courage and time, try storing (reading/writing)
 # data in text files (YAML, JSON).
 # If you have even more courage, try implementing user interface (might be text-like).
-#
-#Try to expand your implementation as best as you can. 
-#Think of as many features as you can, and try implementing them.
-#Make intelligent use of pythons syntactic sugar (overloading, iterators, generators, etc)
-#Most of all: CREATE GOOD, RELIABLE, READABLE CODE.
-#The goal of this task is for you to SHOW YOUR BEST python programming skills.
-#Impress everyone with your skills, show off with your code.
-#
-#Your program must be runnable with command "python task.py".
-#Show some usecases of your library in the code (print some things)
-#
-#When you are done upload this code to your github repository. 
-#
-#Delete these comments before commit!
-#Good luck.
+class Student:
+  def __init__(self, name, surname):
+    self.name = name
+    self.surname = surname
+  
+  math_grades = []
+  biology_grades = []
+  physics_grades = []
+  attendence = {}
+
+  def check_attendence(self, day, is_present=0):
+    self.attendence[day] = is_present
+
+  def get_total_attendence(self):
+    present_sum = 0
+    for day in self.attendence:
+      present_sum += self.attendence[day]
+    return present_sum / len(self.attendence)
+
+  def get_student_average(self):
+    all_grades = self.math_grades + self.biology_grades + self.physics_grades
+    sum_grades = sum(all_grades)
+    average = sum_grades / len(all_grades)
+    return average
+
+class Group:
+  students = []
+
+  def add_student(self, student):
+    self.students.append(student)
+
+  def get_group_average(self):
+    sum_averages = 0
+    for student in self.students:
+      sum_averages += student.get_student_average()
+    group_average = sum_averages / len(self.students)
+    return group_average
+
+if __name__ == "__main__":
+
+  A = Group()
+  B = Group()
+  John = Student("John", "Paul")
+  Mary = Student("Mary", "Bloody")
+  Luke = Student("Luke", "Evangelist")
+  Mark = Student("Mark", "Zuckerberg")
+
+  A.add_student(John)
+  A.add_student(Mary)
+  B.add_student(Luke)
+  B.add_student(Mark)
+  
+  John.math_grades.append(3)
+  John.math_grades.append(2)
+  John.math_grades.append(4)
+  Mary.math_grades.append(3)
+  Mary.biology_grades.append(3)
+  Luke.math_grades.append(1)
+  John.check_attendence("9.11.2020", 1)
+  Mary.check_attendence("9.11.2020", 1)
+  Luke.check_attendence("9.11.2020", 0)
+  Mark.check_attendence("9.11.2020", 1)
+  John.check_attendence("10.11.2020", 0)
+  Mary.check_attendence("10.11.2020", 0)
+  Luke.check_attendence("10.11.2020", 0)
+  Mark.check_attendence("10.11.2020", 0)
+  
+  Mark.get_total_attendence()
+  Luke_average = Luke.get_student_average()
+  A_average = A.get_group_average()
+ 
