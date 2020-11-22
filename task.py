@@ -1,71 +1,136 @@
-class Student:
-  def __init__(self, name, surname):
-    self.name = name
-    self.surname = surname
-  
-  math_grades = []
-  biology_grades = []
-  physics_grades = []
-  attendence = {}
+import json
+from statistics import mean
+from statistics import StatisticsError
 
-  def check_attendence(self, day, is_present=0):
-    self.attendence[day] = is_present
+def add_school(system, school_name):
+  system[school_name] = {}
 
-  def get_total_attendence(self):
-    present_sum = 0
-    for day in self.attendence:
-      present_sum += self.attendence[day]
-    return present_sum / len(self.attendence)
+def add_class(system, school, group_name):
+  system[school][group_name] = {}
 
-  def get_student_average(self):
-    all_grades = self.math_grades + self.biology_grades + self.physics_grades
-    sum_grades = sum(all_grades)
-    average = sum_grades / len(all_grades)
-    return average
+def add_student(system, school, group, ID, name, surname):
+  system[school][group][ID] = {"name": (name, surname), "grades": [], "attendance": []}
 
-class Group:
-  students = []
+def add_grade(system, school, group, ID, grade):
+  system[school][group][ID]["grades"].append(grade)
 
-  def add_student(self, student):
-    self.students.append(student)
+def check_attendance(system, school, group, ID, if_present):
+  system[school][group][ID]["attendance"].append(if_present)
 
-  def get_group_average(self):
-    sum_averages = 0
-    for student in self.students:
-      sum_averages += student.get_student_average()
-    group_average = sum_averages / len(self.students)
-    return group_average
+def get_student_info_by_name(system, name, surname):
+  for school in system:
+    for group in system[school]:
+      for ID in system[school][group]:
+        if system[school][group][ID]["name"] == (name, surname):
+          stud = system[school][group][ID]
+          info = f"Name: {stud['name'][0]}\n"\
+                  f"Surname: {stud['name'][1]}\n"\
+                  f"School: {school}\n"\
+                  f"Class: {group}\n"\
+                  f"Grades: {stud['grades']}"
+          return info  
+
+def get_student_average(system, school, group, ID):
+  try:
+    average =  mean(system[school][group][ID]["grades"])
+    round_average = round(average, 2)
+  except StatisticsError:
+    round_average = 0
+  return round_average
+
+def get_student_attendance_percent(system, school, group, ID):
+  attendance = system[school][group][ID]["attendance"]
+  ratio = sum(attendance)/len(attendance)
+  return round(ratio, 2)
+
+def get_group_grades(system, school, group):
+  group_grades = []
+  for ID in system[school][group]:
+    group_grades.extend(system[school][group][ID]["grades"])
+  return group_grades
+
+def get_group_average(system, school, group):
+  group_grades = get_group_grades(system, school, group)
+  try:
+    group_average = mean(group_grades)
+    round_group_average = round(group_average, 2)
+  except StatisticsError:
+    group_average = 0
+  return round_group_average
+
+def get_school_grades(system, school):
+  school_grades = []
+  for group in system[school]:
+    school_grades.extend(get_group_grades(system, school, group))
+  return school_grades
+
+def get_students_in_class(system, school, group):
+  group_students = list(map(lambda x: system[school][group][x]["name"], system[school][group]))
+  return group_students
+
+def get_students_in_school(system, school):
+  all_students = list(map(lambda x: get_students_in_class(system, school, x), system[school]))
+  return all_students
+
+def read_system_from_json(file_name):
+  with open(file_name) as f:
+    system = json.load(f)
+    return system
+
+def save_to_json(system, file_name):
+  with open(file_name, 'w') as f:
+   json.dump(system, f, indent=1)
 
 if __name__ == "__main__":
+  file_name = "data.json"
+  system = read_system_from_json(file_name)
 
-  A = Group()
-  B = Group()
-  John = Student("John", "Paul")
-  Mary = Student("Mary", "Bloody")
-  Luke = Student("Luke", "Evangelist")
-  Mark = Student("Mark", "Zuckerberg")
+  add_school(system, "school1")
+  add_school(system, "school2")
 
-  A.add_student(John)
-  A.add_student(Mary)
-  B.add_student(Luke)
-  B.add_student(Mark)
-  
-  John.math_grades.append(3)
-  John.math_grades.append(2)
-  John.math_grades.append(4)
-  Mary.math_grades.append(3)
-  Mary.biology_grades.append(3)
-  Luke.math_grades.append(1)
-  John.check_attendence("9.11.2020", 1)
-  Mary.check_attendence("9.11.2020", 1)
-  Luke.check_attendence("9.11.2020", 0)
-  Mark.check_attendence("9.11.2020", 1)
-  John.check_attendence("10.11.2020", 0)
-  Mary.check_attendence("10.11.2020", 0)
-  Luke.check_attendence("10.11.2020", 0)
-  Mark.check_attendence("10.11.2020", 0)
-  
-  Mark.get_total_attendence()
-  Luke_average = Luke.get_student_average()
-  A_average = A.get_group_average()
- 
+  add_class(system, "school1", "A")
+  add_class(system, "school1", "B")
+  add_class(system, "school2", "A")
+
+  add_student(system, "school1", "A", 0, "John", "Kerry")
+  add_student(system, "school1", "A", 1, "Barack", "Obama")
+  add_student(system, "school1", "B", 2, "Joe", "Biden")
+  add_student(system, "school1", "B", 3, "Kamala", "Harris")
+  add_student(system, "school1", "B", 4, "Elisabeth", "Warren")
+  add_student(system, "school1", "B", 5, "Martin", "Luther")
+  add_student(system, "school2", "A", 6, "Ronald", "Reagan")
+  add_student(system, "school2", "A", 7, "Hillary", "Clinton")
+  add_student(system, "school2", "A", 8, "George", "Soros")
+  add_student(system, "school2", "A", 9, "Victor", "Orban")
+  add_student(system, "school2", "A", 10, "Bill", "Gates")
+  add_student(system, "school2", "A", 11, "Vlad", "Putin")
+
+  add_grade(system, "school1", "A", 0 , 3)
+  add_grade(system, "school1", "A", 0, 4)
+  add_grade(system, "school1", "A", 1, 4)
+  add_grade(system, "school1", "B", 5, 3)
+  add_grade(system, "school1", "B", 5, 4)
+  add_grade(system, "school1", "B", 5, 1)
+  add_grade(system, "school2", "A", 8, 5)
+  add_grade(system, "school2", "A", 8, 3)
+
+  check_attendance(system, "school2", "A", 8, 1)
+  check_attendance(system, "school2", "A", 8, 0)
+  check_attendance(system, "school2", "A", 8, 1)
+  check_attendance(system, "school1", "B", 4, 1)
+  check_attendance(system, "school1", "B", 5, 1)
+  check_attendance(system, "school1", "A", 1, 0)
+
+  save_to_json(system, file_name)
+
+######################################################
+
+  print(get_student_average(system, "school1", "B", 5))
+  print(get_group_average(system, "school1", "A"))
+  print(get_student_attendance_percent(system, "school2", "A", 8))
+  print(get_student_info_by_name(system, "Barack", "Obama"))
+  print(get_school_grades(system, "school1"))
+  print(get_students_in_class(system, "school1", "A"))
+  print(get_students_in_school(system, "school2"))
+
+
